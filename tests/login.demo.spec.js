@@ -114,4 +114,5 @@ test('Demo Login Test 1', async({page}) =>{
         throw new Error('Solicitação não encontrada');
     }
         await page.pause();
+        await page.pause();
 });
