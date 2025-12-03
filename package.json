@@ -1,0 +1,17 @@
+{
+  "name": "sinan_automate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "login_demo_spec.js",
+  "scripts": {
+    "test": "npx playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^24.10.1"
+  }
+}
