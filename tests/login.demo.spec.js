@@ -9,7 +9,6 @@ test('Demo Login Test 1', async({page}) =>{
     await page.locator('[id="form:password"]').fill('lucas19');
     
     // Clica no botão de login
-    await page.pause();
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('[class="botao"]')).toBeVisible();
@@ -50,7 +49,6 @@ test('Demo Login Test 1', async({page}) =>{
         const el = document.getElementById('form:consulta_dataFinalInputDate');
         if (el) el.value = valor;
     }, dataHojeStr);
-    await page.pause();
      // --- 4. Selecionar "Notificação ou Residência" no select com id 'form:tipoUf' ---
      await page.locator('[id="form:tipoUf"]').selectOption('3');
       // --- 5. exportar dados do paciente ---
@@ -113,6 +111,4 @@ test('Demo Login Test 1', async({page}) =>{
         console.error(`❌ Erro: Solicitação ${numeroOriginal} não encontrada na lista.`);
         throw new Error('Solicitação não encontrada');
     }
-        await page.pause();
-        await page.pause();
 });
