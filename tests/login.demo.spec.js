@@ -10,10 +10,13 @@ test('Demo Login Test 1', async({page}) =>{
     
     // Clica no botão de login
     await page.waitForLoadState('domcontentloaded');
+    await page.pause();
 
-    await expect(page.locator('[class="botao"]')).toBeVisible();
-    await page.locator('[class="botao"]').press('Enter');
-    
+    await expect(page.locator('[value="Entrar"]')).toBeVisible();
+    await page.locator('[value="Entrar"]').press('Enter');
+
+    //<input type="submit" name="form:j_id21" value="Entrar" class="botao"></input>
+
     // Espera a página carregar após o login
     await page.waitForLoadState('domcontentloaded');
     
@@ -71,7 +74,19 @@ test('Demo Login Test 1', async({page}) =>{
     await page.locator('[id="barraMenu:j_id52_span"]').click();
     await page.waitForSelector('[id="barraMenu:j_id56:anchor"]',{timeout:5000});
     await page.locator('[id="barraMenu:j_id56:anchor"]').click();
-      // --- 9. Procurar na tabela pela linha com o número e clicar em "Baixar arquivo DBF" ---
+
+    // --- 8. Atualizar a listagem (clicar j_id101) duas vezes como no selenium ---
+    const btnAtualizar = page.locator('[id="form:j_id101"]');
+    await btnAtualizar.waitFor({ state: 'visible', timeout: 10000 });
+    await btnAtualizar.click();
+    // dar um tempo curto para carregamento / aguardar rede
+    await page.waitForTimeout(5000);
+    await btnAtualizar.click();
+    await page.waitForTimeout(8000);
+    await btnAtualizar.click();
+    await page.waitForTimeout(5000);
+
+    // --- 9. Procurar na tabela pela linha com o número e clicar em "Baixar arquivo DBF" ---
     const linhas = page.locator('table.rich-table tbody tr');
     const count = await linhas.count();
     console.log(`linhas encontradas: ${count}`);
