@@ -2,20 +2,25 @@ import { test, expect } from '@playwright/test';
 // Remova esta linha, ela não é necessária:
 // import { TIMEOUT } from 'dns'; 
 
-test('Demo Login Test 1', async({page}) =>{
+test('Demo Login Test 1', async({page,context}) =>{
+
+    test.setTimeout(180000); // aumenta limite do teste
+    // limpa sessão anterior para evitar problemas ao rodar várias vezes
+    await context.clearCookies();
+    await context.clearPermissions();
     
-    await page.goto('https://sinan.saude.gov.br/sinan/login/login.jsf');
+    await page.goto('https://sinan.saude.gov.br/sinan/login/login.jsf', { waitUntil: 'networkidle', timeout: 60000 }); // Aumente o timeout para 60 segundos
+    // --- 2. Realizar login ---
     await page.locator('[id="form:username"]').fill('lucas.ferreira@sesma');
     await page.locator('[id="form:password"]').fill('lucas19');
     
     // Clica no botão de login
     await page.waitForLoadState('domcontentloaded');
-    await page.pause();
+    //toda vez que entrar, pausar um pouco para as informações inseridas
+    await expect(page.locator('[name="form:j_id21"]')).toBeVisible();
+    await page.locator('[name="form:j_id21"]').click();
 
-    await expect(page.locator('[value="Entrar"]')).toBeVisible();
-    await page.locator('[value="Entrar"]').press('Enter');
-
-    //<input type="submit" name="form:j_id21" value="Entrar" class="botao"></input>
+    //<input type="submit" class="botao"></input>
 
     // Espera a página carregar após o login
     await page.waitForLoadState('domcontentloaded');
@@ -23,6 +28,7 @@ test('Demo Login Test 1', async({page}) =>{
     // Exportação e Solicitar
 
     // Garante que o elemento esteja visível antes de prosseguir (seletor corrigido)
+    await page.waitForSelector('[id="barraMenu:j_id52_span"]', { timeout: 15000 });
     await expect(page.locator('[id="barraMenu:j_id52_span"]')).toBeVisible();
     await page.locator('[id="barraMenu:j_id52_span"]').click();
     
@@ -52,17 +58,19 @@ test('Demo Login Test 1', async({page}) =>{
         const el = document.getElementById('form:consulta_dataFinalInputDate');
         if (el) el.value = valor;
     }, dataHojeStr);
-     // --- 4. Selecionar "Notificação ou Residência" no select com id 'form:tipoUf' ---
+     
+    // --- 4. Selecionar "Notificação ou Residência" no select com id 'form:tipoUf' ---
      await page.locator('[id="form:tipoUf"]').selectOption('3');
       // --- 5. exportar dados do paciente ---
      await page.locator('[name="form:j_id124"]').click();
-     // --- 6. solicitar ---
+     // --- 6. clicar em solicitar ---
      await page.locator('[id="form:j_id128"]').click();
      
     // espera a mensagem de sucesso e captura o número
     // procurar por um span que contenha "Número:"
     const sucessoSpan = page.locator('xpath=//span[contains(text(), "Número:")]');
-    await sucessoSpan.waitFor({ state: 'visible', timeout: 30000 });
+
+    await sucessoSpan.waitFor({ state: 'visible', timeout: 60000 });
     const numeroIdentificado = (await sucessoSpan.textContent()) || '';
     // limpar: "Número: 1.234"
     let numeroOriginal = numeroIdentificado.replace('Número:', '').trim();
@@ -83,8 +91,6 @@ test('Demo Login Test 1', async({page}) =>{
     await page.waitForTimeout(5000);
     await btnAtualizar.click();
     await page.waitForTimeout(8000);
-    await btnAtualizar.click();
-    await page.waitForTimeout(5000);
 
     // --- 9. Procurar na tabela pela linha com o número e clicar em "Baixar arquivo DBF" ---
     const linhas = page.locator('table.rich-table tbody tr');
