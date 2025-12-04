@@ -79,18 +79,51 @@ test('Demo Login Test 1', async({page,context}) =>{
     console.log('Número da solicitação:', numeroOriginal);
 
     // --- 7. Ir para Menu Exportação -> Consultar exportação ---
+    async function waitForNotBusy(timeout = 60000) {
+        try {
+            // espera o overlay/mascara ficar hidden (ajuste o seletor se necessário)
+            await page.waitForSelector('#ajaxStatusMPDiv', { state: 'hidden', timeout });
+        } catch (err) {
+            // fallback: checa via função se o elemento existe e não bloqueia pointer-events
+            await page.waitForFunction(() => {
+                const el = document.querySelector('#ajaxStatusMPDiv') || document.querySelector('#ajaxStatusMPContainer');
+                if (!el) return true;
+                const s = window.getComputedStyle(el);
+                return s.display === 'none' || s.visibility === 'hidden' || s.pointerEvents === 'none' || el.getAttribute('aria-hidden') === 'true';
+            }, { timeout }).catch(() => {});
+        }
+        // curto aguardo de rede para estabilidade
+        try { await page.waitForLoadState('networkidle', { timeout: 10000 }); } catch (e) { /* ignora */ }
+    }
+
     await page.locator('[id="barraMenu:j_id52_span"]').click();
-    await page.waitForSelector('[id="barraMenu:j_id56:anchor"]',{timeout:5000});
+    await waitForNotBusy();
+    await page.waitForSelector('[id="barraMenu:j_id56:anchor"]', { timeout: 10000 });
     await page.locator('[id="barraMenu:j_id56:anchor"]').click();
+    await waitForNotBusy();
 
     // --- 8. Atualizar a listagem (clicar j_id101) duas vezes como no selenium ---
     const btnAtualizar = page.locator('[id="form:j_id101"]');
-    await btnAtualizar.waitFor({ state: 'visible', timeout: 10000 });
+    await btnAtualizar.waitFor({ state: 'visible', timeout: 20000 });
+
+    // 1ª atualização
+    await waitForNotBusy();
     await btnAtualizar.click();
-    // dar um tempo curto para carregamento / aguardar rede
-    await page.waitForTimeout(5000);
+    await waitForNotBusy();
+
+    // pequena espera para garantir que a atualização foi disparada no servidor
+    await page.waitForTimeout(1000);
+
+    // 2ª atualização
+    await waitForNotBusy();
     await btnAtualizar.click();
-    await page.waitForTimeout(8000);
+    await waitForNotBusy();
+
+    // aguarda até que a tabela tenha pelo menos uma linha (ou até timeout)
+    await page.waitForFunction(() => {
+        const rows = document.querySelectorAll('table.rich-table tbody tr');
+        return rows && rows.length > 0;
+    }, { timeout: 30000 });
 
     // --- 9. Procurar na tabela pela linha com o número e clicar em "Baixar arquivo DBF" ---
     const linhas = page.locator('table.rich-table tbody tr');
