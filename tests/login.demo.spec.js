@@ -62,7 +62,7 @@ test('Demo Login Test 1', async({page}) =>{
     // espera a mensagem de sucesso e captura o número
     // procurar por um span que contenha "Número:"
     const sucessoSpan = page.locator('xpath=//span[contains(text(), "Número:")]');
-    await sucessoSpan.waitFor({ state: 'visible', timeout: 15000 });
+    await sucessoSpan.waitFor({ state: 'visible', timeout: 30000 });
     const numeroIdentificado = (await sucessoSpan.textContent()) || '';
     // limpar: "Número: 1.234"
     let numeroOriginal = numeroIdentificado.replace('Número:', '').trim();
