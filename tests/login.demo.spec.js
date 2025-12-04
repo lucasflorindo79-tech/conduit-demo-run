@@ -16,6 +16,7 @@ test('Demo Login Test 1', async({page,context}) =>{
     
     // Clica no botão de login
     await page.waitForLoadState('domcontentloaded');
+    console.log('Login aceito...');
     //toda vez que entrar, pausar um pouco para as informações inseridas
     await expect(page.locator('[name="form:j_id21"]')).toBeVisible();
     await page.locator('[name="form:j_id21"]').click();
