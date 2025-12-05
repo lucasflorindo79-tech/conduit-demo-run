@@ -152,7 +152,7 @@ test('Demo Login Test 1', async({page,context}) =>{
             linkBaixar.click()
             ]);
 
-                // salvar o ZIP no workspace (sem extrair)
+                // salvar o ZIP no workspace
             const fs = require('fs');
             const path = require('path');
 
@@ -179,8 +179,23 @@ test('Demo Login Test 1', async({page,context}) =>{
 
             console.log('✅ ZIP salvo em:', zipPath);
             console.log('Filename sugerido:', suggested);
+            
+            // Scrip para chamar python para extrair o zip --> testando
+            const { execFileSync } = require('child_process');
 
-            // listar apenas o arquivo salvo (para garantir visibilidade)
+            try {
+                console.log('🔄 Convertendo DBF para CSV usando Python...');
+                execFileSync('python', [
+                    'convert_dbf_to_csv.py',
+                    outDir
+                ], { stdio: 'inherit' });
+                console.log('✅ Conversão concluída!');
+            } catch (err) {
+                console.error('❌ Erro ao chamar o script Python:', err);
+                throw err;
+            }
+
+            // listar apenas o arquivo salvo (para garantir visibilidade) --> testando
             const savedFiles = fs.readdirSync(outDir);
             console.log('Arquivos no diretório de download:', savedFiles);
 
