@@ -14,10 +14,7 @@ test('Demo Login Test 1', async({page,context}) =>{
     await page.locator('[id="form:username"]').fill('lucas.ferreira@sesma');
     await page.locator('[id="form:password"]').fill('lucas19');
     
-    // Clica no botão de login
-    await page.waitForLoadState('domcontentloaded');
-    console.log('Login aceito...');
-    //toda vez que entrar, pausar um pouco para as informações inseridas
+    // Clica no botão de login, mas espera carregar a página
     await expect(page.locator('[name="form:j_id21"]')).toBeVisible();
     await page.locator('[name="form:j_id21"]').click();
 
@@ -29,9 +26,11 @@ test('Demo Login Test 1', async({page,context}) =>{
     // Exportação e Solicitar
 
     // Garante que o elemento esteja visível antes de prosseguir (seletor corrigido)
-    await page.waitForSelector('[id="barraMenu:j_id52_span"]', { timeout: 15000 });
+    await page.waitForSelector('[id="barraMenu:j_id52_span"]', { timeout: 30000 });
     await expect(page.locator('[id="barraMenu:j_id52_span"]')).toBeVisible();
     await page.locator('[id="barraMenu:j_id52_span"]').click();
+    console.log('Login aceito...');
+
     
     await expect(page.locator('[id="barraMenu:j_id53:anchor"]')).toBeVisible();
     await page.locator('[id="barraMenu:j_id53:anchor"]').click();    
@@ -66,11 +65,11 @@ test('Demo Login Test 1', async({page,context}) =>{
      await page.locator('[name="form:j_id124"]').click();
      // --- 6. clicar em solicitar ---
      await page.locator('[id="form:j_id128"]').click();
-     
+     console.log('Solicitando dados...');
+
     // espera a mensagem de sucesso e captura o número
     // procurar por um span que contenha "Número:"
     const sucessoSpan = page.locator('xpath=//span[contains(text(), "Número:")]');
-
     await sucessoSpan.waitFor({ state: 'visible', timeout: 60000 });
     const numeroIdentificado = (await sucessoSpan.textContent()) || '';
     // limpar: "Número: 1.234"
@@ -119,6 +118,8 @@ test('Demo Login Test 1', async({page,context}) =>{
     await waitForNotBusy();
     await btnAtualizar.click();
     await waitForNotBusy();
+    console.log('Atualizados...');
+
 
     // aguarda até que a tabela tenha pelo menos uma linha (ou até timeout)
     await page.waitForFunction(() => {
@@ -151,11 +152,37 @@ test('Demo Login Test 1', async({page,context}) =>{
             linkBaixar.click()
             ]);
 
-            // salvar em disk (se desejar)
-            const path = await download.path();
-            // se quiser salvar num local custom:
-            // await download.saveAs(`/tmp/${download.suggestedFilename()}`);
-            console.log('Download iniciado. filename suggestion:', download.suggestedFilename(), 'path temporary:', path);
+                // salvar o ZIP no workspace (sem extrair)
+            const fs = require('fs');
+            const path = require('path');
+
+            const workspace = process.env.GITHUB_WORKSPACE || process.cwd();
+            const outDir = path.join(workspace, 'sinan_downloads', String(numeroOriginal));
+            fs.mkdirSync(outDir, { recursive: true });
+
+            const suggested = download.suggestedFilename ? download.suggestedFilename() : `sinan_${numeroOriginal}.zip`;
+            const zipPath = path.join(outDir, suggested);
+
+            try {
+                // saveAs é o método mais confiável para garantir que o arquivo vá para o destino
+                await download.saveAs(zipPath);
+            } catch (err) {
+                // fallback: tentar copiar do caminho temporário
+                const tmpPath = await download.path();
+                if (tmpPath) {
+                    fs.copyFileSync(tmpPath, zipPath);
+                } else {
+                    console.error('Erro ao salvar o download (saveAs e path falharam):', err);
+                    throw err;
+                }
+            }
+
+            console.log('✅ ZIP salvo em:', zipPath);
+            console.log('Filename sugerido:', suggested);
+
+            // listar apenas o arquivo salvo (para garantir visibilidade)
+            const savedFiles = fs.readdirSync(outDir);
+            console.log('Arquivos no diretório de download:', savedFiles);
 
             baixou = true;
             break;
@@ -163,7 +190,7 @@ test('Demo Login Test 1', async({page,context}) =>{
     }
 
     if (!baixou) {
-        console.error(`❌ Erro: Solicitação ${numeroOriginal} não encontrada na lista.`);
-        throw new Error('Solicitação não encontrada');
+            console.error(`❌ Erro: Solicitação ${numeroOriginal} não encontrada na lista.`);
+            throw new Error('Solicitação não encontrada');
     }
 });
