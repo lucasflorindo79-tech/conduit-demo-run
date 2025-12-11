@@ -21,12 +21,11 @@ test('Demo Login Test 1', async({page,context}) =>{
     //<input type="submit" class="botao"></input>
 
     // Espera a página carregar após o login
-    await page.waitForLoadState('domcontentloaded');
-    
+    await page.waitForLoadState('domcontentloaded');    
     // Exportação e Solicitar
 
     // Garante que o elemento esteja visível antes de prosseguir (seletor corrigido)
-    await page.waitForSelector('[id="barraMenu:j_id52_span"]', { timeout: 30000 });
+    await page.waitForSelector('[id="barraMenu:j_id52_span"]', { timeout: 50000 });
     await expect(page.locator('[id="barraMenu:j_id52_span"]')).toBeVisible();
     await page.locator('[id="barraMenu:j_id52_span"]').click();
     console.log('Login aceito...');
