@@ -206,6 +206,6 @@ test('Demo Login Test 1', async({page,context}) =>{
 
     if (!baixou) {
             console.error(`❌ Erro: Solicitação ${numeroOriginal} não encontrada na lista.`);
-            throw new Error('Solicitação não encontrada');
+            throw new Error('Solicitação não encontrada...');
     }
 });
